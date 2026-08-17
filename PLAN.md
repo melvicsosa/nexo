@@ -1,8 +1,10 @@
 # nexo — Implementation Plan
 
-> Working name: `nexo` (free on Homebrew, verified 2026-08-16). Repo: `melvicsosa/nexo`.
+> Name: `nexo`. Repo: `melvicsosa/nexo`. Companion doc: `docs/spec.md` (product spec).
+> **Status (2026-08-16): Phases 0–6 SHIPPED** — v0.5.0 on the tap. Adapters: Claude Code,
+> Cursor, Codex. Deferred within v1 scope: Cursor/Codex plugin management (spike docs name
+> the blockers), MCP assets (modeled, D12), dirty-git-tree warning (needs an exec port).
 > This plan resolves every blocking gap found in the spec review and defines the build sequence.
-> Companion doc: `ai_skills_plugins_manager_spec.md` (product spec).
 
 ---
 
