@@ -31,10 +31,14 @@ var ignored = map[string]bool{
 }
 
 // Tree hashes the file tree rooted at root: sha256 over a deterministic
-// stream of relative path + kind + content (symlinks contribute their
-// target, not what they point at). Root may also be a single file.
+// stream of relative path + kind + content (symlinks INSIDE the tree
+// contribute their target, not what they point at). The root itself is
+// resolved: a symlinked root hashes identically to its target, because
+// projects in the wild symlink skill dirs to a shared location and the
+// identity is the content, not how it is reached. Root may also be a
+// single file.
 func Tree(fsys ports.FS, root string) (string, error) {
-	info, err := fsys.Lstat(root)
+	info, err := fsys.Stat(root)
 	if err != nil {
 		return "", fmt.Errorf("treehash: %w", err)
 	}

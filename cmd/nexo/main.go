@@ -1,24 +1,35 @@
 // Command nexo is a package manager for AI development assets: skills,
 // plugins and (eventually) MCP servers, across Claude Code, Cursor and
 // other agentic coding tools.
+//
+// main is pure wiring: real ports in, exit code out. Everything else
+// lives behind injected interfaces (plan D7).
 package main
 
 import (
 	"fmt"
 	"os"
+
+	"github.com/melvicsosa/nexo/internal/cli"
+	"github.com/melvicsosa/nexo/internal/ports"
 )
 
 // version is injected at build time via -ldflags "-X main.version=...".
 var version = "dev"
 
 func main() {
-	if len(os.Args) > 1 {
-		switch os.Args[1] {
-		case "version", "-version", "--version", "-v":
-			fmt.Printf("nexo %s\n", version)
-			return
-		}
+	paths, err := ports.NewOSPaths()
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "nexo: %v\n", err)
+		os.Exit(1)
 	}
-	fmt.Printf("nexo %s — package manager for AI development assets\n", version)
-	fmt.Println("Phase 0 stub: distribution pipeline only. See PLAN.md for the roadmap.")
+	app := &cli.App{
+		FS:      ports.OSFS{},
+		Paths:   paths,
+		Stdout:  os.Stdout,
+		Stderr:  os.Stderr,
+		Version: version,
+		Getwd:   os.Getwd,
+	}
+	os.Exit(app.Run(os.Args[1:]))
 }
