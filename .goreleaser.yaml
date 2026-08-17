@@ -1,0 +1,71 @@
+version: 2
+
+project_name: nexo
+
+before:
+  hooks:
+    - go mod tidy
+
+builds:
+  - id: nexo
+    main: ./cmd/nexo
+    binary: nexo
+    env:
+      - CGO_ENABLED=0
+    goos:
+      - darwin
+      - linux
+      - windows
+    goarch:
+      - amd64
+      - arm64
+    ldflags:
+      - -s -w -X main.version={{ .Version }}
+
+archives:
+  - formats: [tar.gz]
+    name_template: >-
+      {{ .ProjectName }}_{{ .Version }}_{{ .Os }}_{{ .Arch }}
+    format_overrides:
+      - goos: windows
+        formats: [zip]
+    files:
+      - LICENSE
+      - README.md
+
+checksum:
+  name_template: checksums.txt
+
+# Pushes the Homebrew cask to melvicsosa/homebrew-tap on every release.
+# Needs the HOMEBREW_TAP_TOKEN secret (a fine-grained PAT with contents:write
+# on homebrew-tap); without it the cask is generated but not pushed, so a
+# release never fails just because the token is missing.
+homebrew_casks:
+  - repository:
+      owner: melvicsosa
+      name: homebrew-tap
+      token: "{{ .Env.HOMEBREW_TAP_TOKEN }}"
+    directory: Casks
+    homepage: https://github.com/melvicsosa/nexo
+    description: Package manager for AI development assets — skills, plugins and MCP servers
+    commit_msg_template: "feat: nexo {{ .Tag }}"
+    # The workflow always defines HOMEBREW_TAP_TOKEN (empty when the secret is
+    # missing), so an empty value skips the push instead of failing the release.
+    skip_upload: "{{ if .Env.HOMEBREW_TAP_TOKEN }}false{{ else }}true{{ end }}"
+    # The binaries are not notarized; clear the quarantine bit so Gatekeeper
+    # does not block the first run on macOS.
+    hooks:
+      post:
+        install: |
+          if system_command("/usr/bin/xattr", args: ["-h"]).exit_status == 0
+            system_command "/usr/bin/xattr", args: ["-dr", "com.apple.quarantine", "#{staged_path}/nexo"]
+          end
+
+changelog:
+  sort: asc
+  filters:
+    exclude:
+      - "^docs:"
+      - "^test:"
+      - "^chore:"
+      - "^ci:"
