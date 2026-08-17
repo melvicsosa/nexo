@@ -70,6 +70,12 @@ func (a *App) Run(args []string) int {
 		return a.cmdPlugin(rest)
 	case "marketplace":
 		return a.cmdMarketplace(rest)
+	case "registry":
+		return a.cmdRegistry(rest)
+	case "search":
+		return a.cmdSearch(rest)
+	case "fetch":
+		return a.cmdFetch(rest)
 	case "ui":
 		if a.LaunchTUI == nil {
 			fmt.Fprintln(a.Stderr, "nexo: interactive UI needs a terminal")
@@ -100,6 +106,10 @@ Usage:
   nexo doctor [--json]                 verify records against reality
   nexo plugin enable|disable <name>    flip a plugin in the provider's config
   nexo marketplace sync                expose library plugins to Claude Code
+  nexo registry add|list|remove        manage asset registries
+  nexo search <term> [--json]          search configured registries
+  nexo fetch <registry>/<name>         download a registry asset into the library
+  nexo ui                              interactive UI (default on a terminal)
   nexo version                         print version
   nexo help                            this help
 

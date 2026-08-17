@@ -82,10 +82,10 @@ func TestProvidersJSON(t *testing.T) {
 	if err := json.Unmarshal(stdout.Bytes(), &reports); err != nil {
 		t.Fatalf("invalid JSON: %v\n%s", err, stdout.String())
 	}
-	if len(reports) != 2 {
-		t.Fatalf("got %d providers", len(reports))
+	if len(reports) != 3 {
+		t.Fatalf("got %d providers, want 3 (claude-code, cursor, codex)", len(reports))
 	}
-	if !reports[0].Detection.Installed || reports[1].Detection.Installed {
+	if !reports[0].Detection.Installed || reports[1].Detection.Installed || reports[2].Detection.Installed {
 		t.Errorf("detection = %+v", reports)
 	}
 }
@@ -112,7 +112,7 @@ func TestListJSON(t *testing.T) {
 	if err := json.Unmarshal(stdout.Bytes(), &reports); err != nil {
 		t.Fatalf("invalid JSON: %v", err)
 	}
-	if len(reports) != 2 || len(reports[0].Assets) != 2 {
+	if len(reports) != 3 || len(reports[0].Assets) != 2 {
 		t.Errorf("reports = %+v", reports)
 	}
 }

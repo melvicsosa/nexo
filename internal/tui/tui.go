@@ -7,6 +7,7 @@ package tui
 
 import (
 	"fmt"
+	"runtime"
 	"sort"
 
 	tea "github.com/charmbracelet/bubbletea"
@@ -99,11 +100,12 @@ func New(deps Deps) (Model, error) {
 	lib := library.New(deps.FS, store.Dir(), deps.Clock)
 	db := install.OpenDB(deps.FS, store.Dir())
 	installer := &install.Installer{
-		FS:      deps.FS,
-		Lib:     lib,
-		DB:      db,
-		Journal: &tx.FileJournal{FS: deps.FS, Dir: store.JournalDir(), Clock: deps.Clock},
-		Clock:   deps.Clock,
+		FS:         deps.FS,
+		Lib:        lib,
+		DB:         db,
+		Journal:    &tx.FileJournal{FS: deps.FS, Dir: store.JournalDir(), Clock: deps.Clock},
+		Clock:      deps.Clock,
+		NoSymlinks: runtime.GOOS == "windows",
 	}
 	return Model{
 		deps:      deps,

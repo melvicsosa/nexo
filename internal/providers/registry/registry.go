@@ -8,6 +8,7 @@ import (
 	"github.com/melvicsosa/nexo/internal/ports"
 	"github.com/melvicsosa/nexo/internal/providers"
 	"github.com/melvicsosa/nexo/internal/providers/claudecode"
+	"github.com/melvicsosa/nexo/internal/providers/codex"
 	"github.com/melvicsosa/nexo/internal/providers/cursor"
 )
 
@@ -17,6 +18,6 @@ func All(fsys ports.FS, paths ports.Paths) []providers.Provider {
 	return []providers.Provider{
 		claudecode.New(fsys, paths),
 		cursor.New(fsys, paths),
-		// codex: seat reserved — Phase 6, after its research spike.
+		codex.New(fsys, paths),
 	}
 }

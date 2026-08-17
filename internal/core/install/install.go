@@ -39,6 +39,10 @@ type Installer struct {
 	DB      *DB
 	Journal tx.Journal
 	Clock   ports.Clock
+	// NoSymlinks switches global installs from symlink to copy —
+	// Windows, where creating symlinks needs elevated privileges.
+	// Wired from runtime.GOOS at the edges, never decided here.
+	NoSymlinks bool
 }
 
 // Request describes one install or remove operation.
@@ -75,7 +79,7 @@ func (i *Installer) Install(req Request) (Result, error) {
 	var steps []tx.Step
 	strategy := domain.StrategyMaterialize
 
-	if req.Target.Scope == domain.ScopeGlobal {
+	if req.Target.Scope == domain.ScopeGlobal && !i.NoSymlinks {
 		// D3: global = symlink into the library.
 		done, preSteps, err := i.planGlobalSymlink(dest, libPath, req.Force)
 		if err != nil {
@@ -87,6 +91,21 @@ func (i *Installer) Install(req Request) (Result, error) {
 		steps = append(steps, tx.MkdirAll(destDir, 0o755))
 		steps = append(steps, preSteps...)
 		steps = append(steps, tx.Symlink(libPath, dest))
+	} else if req.Target.Scope == domain.ScopeGlobal {
+		// Windows fallback: global installs are copies too.
+		done, preSteps, err := i.planProjectCopy(dest, asset.Hash, req.Force)
+		if err != nil {
+			return Result{}, err
+		}
+		if done {
+			return i.recordOnly(req, asset, strategy)
+		}
+		steps = append(steps, preSteps...)
+		copySteps, err := tx.PlanCopyTree(i.FS, libPath, dest, copyIgnore)
+		if err != nil {
+			return Result{}, err
+		}
+		steps = append(steps, copySteps...)
 	} else {
 		// D3: project = copy, self-contained and committable.
 		done, preSteps, err := i.planProjectCopy(dest, asset.Hash, req.Force)

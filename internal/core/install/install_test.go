@@ -235,6 +235,25 @@ func TestRemoveGlobalSymlink(t *testing.T) {
 	}
 }
 
+func TestGlobalInstallNoSymlinksFallsBackToCopy(t *testing.T) {
+	inst, m, prov := setup(t)
+	inst.NoSymlinks = true // Windows behavior
+	if _, err := inst.Install(globalReq(prov)); err != nil {
+		t.Fatalf("Install: %v", err)
+	}
+	info, err := m.Lstat("/home/.claude/skills/my-skill")
+	if err != nil || !info.IsDir() {
+		t.Fatalf("fallback install = %v, %v, want real directory", info, err)
+	}
+	if data, _ := m.ReadFile("/home/.claude/skills/my-skill/SKILL.md"); string(data) != "v1" {
+		t.Errorf("content = %q", data)
+	}
+	// Removal still works via hash verification.
+	if _, err := inst.Remove(globalReq(prov)); err != nil {
+		t.Fatalf("Remove: %v", err)
+	}
+}
+
 func TestInstallRollsBackCompletely(t *testing.T) {
 	inst, m, prov := setup(t)
 	before := m.Snapshot()

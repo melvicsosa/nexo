@@ -2,6 +2,7 @@ package cli
 
 import (
 	"fmt"
+	"runtime"
 	"sort"
 	"strings"
 	"text/tabwriter"
@@ -63,11 +64,12 @@ func (a *App) services() (*library.Library, *install.DB, *install.Installer, err
 	lib := library.New(a.FS, store.Dir(), clock)
 	db := install.OpenDB(a.FS, store.Dir())
 	installer := &install.Installer{
-		FS:      a.FS,
-		Lib:     lib,
-		DB:      db,
-		Journal: &tx.FileJournal{FS: a.FS, Dir: store.JournalDir(), Clock: clock},
-		Clock:   clock,
+		FS:         a.FS,
+		Lib:        lib,
+		DB:         db,
+		Journal:    &tx.FileJournal{FS: a.FS, Dir: store.JournalDir(), Clock: clock},
+		Clock:      clock,
+		NoSymlinks: runtime.GOOS == "windows",
 	}
 	return lib, db, installer, nil
 }
