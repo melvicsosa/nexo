@@ -10,8 +10,11 @@ import (
 	"fmt"
 	"os"
 
+	"github.com/mattn/go-isatty"
+
 	"github.com/melvicsosa/nexo/internal/cli"
 	"github.com/melvicsosa/nexo/internal/ports"
+	"github.com/melvicsosa/nexo/internal/tui"
 )
 
 // version is injected at build time via -ldflags "-X main.version=...".
@@ -30,6 +33,19 @@ func main() {
 		Stderr:  os.Stderr,
 		Version: version,
 		Getwd:   os.Getwd,
+	}
+	// The interactive UI only makes sense on a real terminal; piped or
+	// scripted invocations get the CLI surface.
+	if isatty.IsTerminal(os.Stdout.Fd()) && isatty.IsTerminal(os.Stdin.Fd()) {
+		app.LaunchTUI = func() error {
+			return tui.Run(tui.Deps{
+				FS:      ports.OSFS{},
+				Paths:   paths,
+				Version: version,
+				Getwd:   os.Getwd,
+				Clock:   ports.SystemClock{},
+			})
+		}
 	}
 	os.Exit(app.Run(os.Args[1:]))
 }

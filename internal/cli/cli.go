@@ -24,11 +24,21 @@ type App struct {
 	Version string
 	Getwd   func() (string, error)
 	Clock   ports.Clock // nil = system clock
+	// LaunchTUI starts the interactive UI; nil (tests, non-TTY) falls
+	// back to usage. Wired in main so the cli package stays free of
+	// terminal concerns.
+	LaunchTUI func() error
 }
 
 // Run dispatches args and returns the process exit code.
 func (a *App) Run(args []string) int {
 	if len(args) == 0 {
+		if a.LaunchTUI != nil {
+			if err := a.LaunchTUI(); err != nil {
+				return a.fail(err)
+			}
+			return 0
+		}
 		a.usage()
 		return 0
 	}
@@ -60,6 +70,15 @@ func (a *App) Run(args []string) int {
 		return a.cmdPlugin(rest)
 	case "marketplace":
 		return a.cmdMarketplace(rest)
+	case "ui":
+		if a.LaunchTUI == nil {
+			fmt.Fprintln(a.Stderr, "nexo: interactive UI needs a terminal")
+			return 1
+		}
+		if err := a.LaunchTUI(); err != nil {
+			return a.fail(err)
+		}
+		return 0
 	default:
 		fmt.Fprintf(a.Stderr, "nexo: unknown command %q\n\n", cmd)
 		a.usage()
