@@ -11,6 +11,7 @@ import (
 	"path"
 
 	"github.com/melvicsosa/nexo/internal/core/treehash"
+	"github.com/melvicsosa/nexo/internal/core/tx"
 	"github.com/melvicsosa/nexo/internal/domain"
 	"github.com/melvicsosa/nexo/internal/ports"
 )
@@ -62,6 +63,16 @@ type Provider interface {
 // these paths and the tx engine executes — adapters never write.
 type SkillLocator interface {
 	SkillsDir(target domain.Target) string
+}
+
+// PluginConfigurator is the write-side contract for plugin enablement
+// (Phase 4, Reference strategy — plan D1): the adapter plans a config
+// mutation, the tx engine executes it. changed=false means the config
+// already says what was asked (no-op). nexo manages the enable state
+// and provides the marketplace; the provider's native mechanism keeps
+// owning installation itself — we never fight it.
+type PluginConfigurator interface {
+	PlanPluginEnable(plugin string, target domain.Target, enabled bool) (steps []tx.Step, changed bool, err error)
 }
 
 // ScanSkillsDir inspects a skills directory the way the tools do: every

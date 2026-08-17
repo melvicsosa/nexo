@@ -56,6 +56,10 @@ func (a *App) Run(args []string) int {
 		return a.cmdRemove(rest)
 	case "doctor":
 		return a.cmdDoctor(rest)
+	case "plugin":
+		return a.cmdPlugin(rest)
+	case "marketplace":
+		return a.cmdMarketplace(rest)
 	default:
 		fmt.Fprintf(a.Stderr, "nexo: unknown command %q\n\n", cmd)
 		a.usage()
@@ -75,6 +79,8 @@ Usage:
   nexo install <asset> [flags]         install a library asset
   nexo remove <asset> [flags]          uninstall a nexo-managed asset
   nexo doctor [--json]                 verify records against reality
+  nexo plugin enable|disable <name>    flip a plugin in the provider's config
+  nexo marketplace sync                expose library plugins to Claude Code
   nexo version                         print version
   nexo help                            this help
 

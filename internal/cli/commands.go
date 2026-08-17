@@ -195,12 +195,12 @@ func (a *App) cmdLibrary(args []string) int {
 // ---- nexo adopt -----------------------------------------------------------
 
 func (a *App) cmdAdopt(args []string) int {
-	pos, flags, err := parseArgs(args, map[string]bool{"json": true}, map[string]bool{"version": true, "description": true})
+	pos, flags, err := parseArgs(args, map[string]bool{"json": true}, map[string]bool{"version": true, "description": true, "type": true})
 	if err != nil {
 		return a.fail(err)
 	}
 	if len(pos) != 1 {
-		fmt.Fprintln(a.Stderr, "nexo: usage: nexo adopt <name-or-path> [--version v] [--description d]")
+		fmt.Fprintln(a.Stderr, "nexo: usage: nexo adopt <name-or-path> [--type skill|plugin] [--version v] [--description d]")
 		return 2
 	}
 	lib, _, _, err := a.services()
@@ -211,8 +211,16 @@ func (a *App) cmdAdopt(args []string) int {
 	if err != nil {
 		return a.fail(err)
 	}
+	assetType := flags["type"]
+	if assetType == "" {
+		assetType = string(a.detectAssetType(srcPath))
+	}
+	if !domain.Type(assetType).Valid() {
+		return a.fail(fmt.Errorf("unknown asset type %q", assetType))
+	}
 	id := domain.ID{Source: domain.DefaultSource, Name: name}
 	asset, err := lib.Add(srcPath, id, library.Sidecar{
+		Type:        assetType,
 		Version:     flags["version"],
 		Description: flags["description"],
 	})
@@ -224,6 +232,17 @@ func (a *App) cmdAdopt(args []string) int {
 	}
 	fmt.Fprintf(a.Stdout, "adopted %s (%.8s) from %s\n", asset.ID, asset.Hash, srcPath)
 	return 0
+}
+
+// detectAssetType sniffs what kind of asset a directory holds: a
+// Claude plugin manifest wins, otherwise it is treated as a skill.
+func (a *App) detectAssetType(srcPath string) domain.Type {
+	for _, marker := range []string{".claude-plugin/plugin.json", "plugin.json"} {
+		if _, err := a.FS.Stat(srcPath + "/" + marker); err == nil {
+			return domain.TypePlugin
+		}
+	}
+	return domain.TypeSkill
 }
 
 // resolveAdoptSource accepts either a directory path or an asset name
