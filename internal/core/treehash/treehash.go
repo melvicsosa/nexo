@@ -16,10 +16,11 @@ import (
 	"github.com/melvicsosa/nexo/internal/ports"
 )
 
-// SidecarName is nexo's per-asset metadata file. It describes the
-// asset, it is not part of it, so it never participates in the hash —
-// otherwise editing metadata would look like content drift.
-const SidecarName = ".nexo.yaml"
+// SidecarName is nexo's per-asset metadata file (JSON — stdlib only,
+// per the zero-dependency philosophy). It describes the asset, it is
+// not part of it, so it never participates in the hash — otherwise
+// editing metadata would look like content drift.
+const SidecarName = ".nexo.json"
 
 // ignored are entries that never participate in a hash: macOS noise and
 // VCS internals would make identical assets hash differently across

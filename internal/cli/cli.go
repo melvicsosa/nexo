@@ -23,6 +23,7 @@ type App struct {
 	Stderr  io.Writer
 	Version string
 	Getwd   func() (string, error)
+	Clock   ports.Clock // nil = system clock
 }
 
 // Run dispatches args and returns the process exit code.
@@ -45,6 +46,16 @@ func (a *App) Run(args []string) int {
 		return a.cmdList(rest)
 	case "project":
 		return a.cmdProject(rest)
+	case "library":
+		return a.cmdLibrary(rest)
+	case "adopt":
+		return a.cmdAdopt(rest)
+	case "install":
+		return a.cmdInstall(rest)
+	case "remove":
+		return a.cmdRemove(rest)
+	case "doctor":
+		return a.cmdDoctor(rest)
 	default:
 		fmt.Fprintf(a.Stderr, "nexo: unknown command %q\n\n", cmd)
 		a.usage()
@@ -59,8 +70,19 @@ Usage:
   nexo providers [--json]              detected providers and their capabilities
   nexo list [--json]                   global assets per provider
   nexo project inspect [path] [--json] assets configured in a project
+  nexo library [--json]                assets in your local library
+  nexo adopt <name-or-path>            bring an existing asset into the library
+  nexo install <asset> [flags]         install a library asset
+  nexo remove <asset> [flags]          uninstall a nexo-managed asset
+  nexo doctor [--json]                 verify records against reality
   nexo version                         print version
   nexo help                            this help
+
+Install/remove flags:
+  --global | --project <path>   target (default: current directory as project)
+  --provider <id>               required when more than one provider applies
+  --force                       override safety checks (overwrite/modified)
+  --dry-run                     print the plan without touching anything
 `)
 }
 

@@ -16,8 +16,8 @@ const (
 // Target is the destination of an installation: the global location of
 // a provider, or a specific project directory.
 type Target struct {
-	Scope       Scope
-	ProjectPath string // required for ScopeProject, must be empty for ScopeGlobal
+	Scope       Scope  `json:"scope"`
+	ProjectPath string `json:"project_path,omitempty"` // required for ScopeProject, must be empty for ScopeGlobal
 }
 
 // Validate enforces the scope/path pairing.
@@ -80,14 +80,14 @@ const (
 // provider. Hash pins the exact content that was installed: uninstall
 // and drift detection compare against it, never against the version.
 type Installation struct {
-	Asset       ID
-	Hash        string
-	Version     string // optional, informational only
-	Provider    string
-	Target      Target
-	Strategy    Strategy
-	Source      InstallSource
-	InstalledAt time.Time
+	Asset       ID            `json:"asset"`
+	Hash        string        `json:"hash"`
+	Version     string        `json:"version,omitempty"` // optional, informational only
+	Provider    string        `json:"provider"`
+	Target      Target        `json:"target"`
+	Strategy    Strategy      `json:"strategy"`
+	Source      InstallSource `json:"source"`
+	InstalledAt time.Time     `json:"installed_at"`
 }
 
 // Validate checks the record is complete enough to be acted on safely.

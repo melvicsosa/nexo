@@ -51,6 +51,15 @@ func (a *Adapter) Detect() providers.DetectionResult {
 	return providers.DetectionResult{Installed: true, Evidence: a.root()}
 }
 
+// SkillsDir locates the skills directory for a target (write-side
+// contract, Phase 3).
+func (a *Adapter) SkillsDir(target domain.Target) string {
+	if target.Scope == domain.ScopeProject {
+		return path.Join(target.ProjectPath, ".claude", "skills")
+	}
+	return path.Join(a.root(), "skills")
+}
+
 func (a *Adapter) Capabilities() providers.Capabilities {
 	return providers.Capabilities{
 		GlobalSkills:  true,

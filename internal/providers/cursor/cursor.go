@@ -11,6 +11,7 @@ import (
 	"fmt"
 	"path"
 
+	"github.com/melvicsosa/nexo/internal/domain"
 	"github.com/melvicsosa/nexo/internal/ports"
 	"github.com/melvicsosa/nexo/internal/providers"
 )
@@ -39,6 +40,15 @@ func (a *Adapter) Detect() providers.DetectionResult {
 		return providers.DetectionResult{Installed: false}
 	}
 	return providers.DetectionResult{Installed: true, Evidence: a.root()}
+}
+
+// SkillsDir locates the skills directory for a target (write-side
+// contract, Phase 3).
+func (a *Adapter) SkillsDir(target domain.Target) string {
+	if target.Scope == domain.ScopeProject {
+		return path.Join(target.ProjectPath, ".cursor", "skills")
+	}
+	return path.Join(a.root(), "skills")
 }
 
 func (a *Adapter) Capabilities() providers.Capabilities {

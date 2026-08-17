@@ -4,6 +4,7 @@
 package domain
 
 import (
+	"encoding/json"
 	"fmt"
 	"strings"
 )
@@ -62,6 +63,25 @@ func ParseID(s string) (ID, error) {
 // String renders the full namespaced form.
 func (id ID) String() string {
 	return id.Source + "/" + id.Name
+}
+
+// MarshalJSON persists the ID in its canonical "source/name" form.
+func (id ID) MarshalJSON() ([]byte, error) {
+	return json.Marshal(id.String())
+}
+
+// UnmarshalJSON parses the canonical form back, validating it.
+func (id *ID) UnmarshalJSON(data []byte) error {
+	var s string
+	if err := json.Unmarshal(data, &s); err != nil {
+		return err
+	}
+	parsed, err := ParseID(s)
+	if err != nil {
+		return err
+	}
+	*id = parsed
+	return nil
 }
 
 // Validate checks both segments are present and free of separators and

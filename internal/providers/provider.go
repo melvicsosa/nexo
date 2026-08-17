@@ -56,6 +56,14 @@ type Provider interface {
 	InspectProject(projectPath string) ([]FoundAsset, error)
 }
 
+// SkillLocator is the write-side location contract for skill installs
+// (Phase 3): where skills live for a given target. Adapters that
+// declare skill capabilities implement it; the installer PLANS against
+// these paths and the tx engine executes — adapters never write.
+type SkillLocator interface {
+	SkillsDir(target domain.Target) string
+}
+
 // ScanSkillsDir inspects a skills directory the way the tools do: every
 // child directory containing a SKILL.md is a skill. Symlinked children
 // are followed — real projects symlink skill dirs to shared locations —
